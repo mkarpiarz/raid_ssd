@@ -7,6 +7,8 @@ set -x
 disks=(/dev/sdc /dev/sdd)
 # RAID level
 level="mirror"
+# name of the RAID device
+raid_dev="/dev/md2"
 # --------
 
 # check if the user is root
@@ -33,5 +35,17 @@ do
 	w" | fdisk $disk
 	fdisk -l $disk
 done
+
+# check if mdadm is installed
+if [[ -z `dpkg --get-selections | grep -w ^mdadm | grep -w install$` ]]
+then
+	echo "ERROR: Please install mdadm. Exiting."
+	exit 2
+fi
+
+echo "Setting up the RAID array"
+echo "y" | mdadm --create --verbose ${raid_dev} --level=$level --raid-devices=$n_disks ${disks[*]}
+mdadm --detail ${raid_dev}
+cat /proc/mdstat
 
 set -
