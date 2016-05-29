@@ -38,14 +38,14 @@
               ui.info "Creating #{hdd}\.vmdk"
               driver.execute("createhd", 
                    "--filename", "#{hdd}", 
-                   "--size", size, 
+                   "--size", size.to_s, 
                    "--format", "#{format}")
                end
 
         # Attach devices
         driver.execute('storageattach', uuid,
           '--storagectl', "#{controller_name}",
-          '--port', port += 1,
+          '--port', (port += 1).to_s,
           '--type', 'hdd',
           '--medium', "#{hdd}" + ".vmdk")
       end

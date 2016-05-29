@@ -100,3 +100,6 @@ Bringing machine 'default' up with 'virtualbox' provider...
 	from /opt/vagrant/embedded/gems/gems/vagrant-1.8.1/lib/vagrant/machine.rb:185:in `action'
 	from /opt/vagrant/embedded/gems/gems/vagrant-1.8.1/lib/vagrant/batch_action.rb:82:in `block (2 levels) in run'
 -------
+
+SOLUTION #1: Apparently, the "driver.execute" function requires all the arguments to be strings:
+https://gist.github.com/leifg/4713995#gistcomment-1615077
