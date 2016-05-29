@@ -1,6 +1,9 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+VAGRANT_ROOT = File.dirname(File.expand_path(__FILE__))
+disk = File.join(VAGRANT_ROOT, 'vm-trusty-disk1.vdi')
+
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
@@ -53,6 +56,13 @@ Vagrant.configure(2) do |config|
   #
   # View the documentation for the provider you are using for more
   # information on available options.
+
+  config.vm.provider "virtualbox" do | vb |
+      unless File.exist?(disk)
+          vb.customize ['createhd', '--filename', disk, '--size', 1 * 1024]
+      end
+      vb.customize ['storageattach', :id, '--storagectl', 'SATAController', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', disk]
+  end
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
   # such as FTP and Heroku are also available. See the documentation at
