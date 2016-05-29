@@ -125,5 +125,11 @@ Vagrant.configure(2) do |config|
     sudo apt-get update && sudo apt-get upgrade -y
     sudo apt-get install -y mdadm
     sudo apt-get install -y lvm2
+    # put some data in nova's catalog (for testing purposes only)
+    sudo mkdir -p /var/lib/nova/instances
+    sudo touch /var/lib/nova/instances/test{1,2,3}
+    # add nova user and group
+    sudo groupadd nova
+    sudo useradd -g nova nova
   SHELL
 end

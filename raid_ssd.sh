@@ -72,4 +72,21 @@ lvcreate -l 100%FREE -n instanceslv instancesvg
 mkfs.ext4 /dev/instancesvg/instanceslv
 lvdisplay
 
+echo "Moving instances data"
+mkdir -p /mnt/instances
+mount /dev/instancesvg/instanceslv /mnt/instances/
+rsync -av /var/lib/nova/instances/* /mnt/instances/
+mv /var/lib/nova/instances /var/lib/nova/instances.old
+umount /mnt/instances
+
+echo "Mounting filesystem permanently"
+# backup fstab
+cp /etc/fstab{,.`date +%Y%m%d-%H%M`.bak}
+# add entry to fstab
+echo "/dev/mapper/instancesvg-instanceslv /var/lib/nova/instances     ext4    defaults        0       0" >> /etc/fstab
+mkdir /var/lib/nova/instances
+mount /var/lib/nova/instances
+chown -R nova:nova /var/lib/nova/instances
+ls -la /var/lib/nova/instances
+
 set -
