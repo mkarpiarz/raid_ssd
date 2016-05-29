@@ -1,8 +1,58 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-VAGRANT_ROOT = File.dirname(File.expand_path(__FILE__))
-disk = File.join(VAGRANT_ROOT, 'vm-trusty-disk1.vdi')
+# https://gist.github.com/leifg/4713995
+  class VagrantPlugins::ProviderVirtualBox::Action::SetName
+    alias_method :original_call, :call
+    def call(env)
+      machine = env[:machine]
+      driver = machine.provider.driver
+      uuid = driver.instance_eval { @uuid }
+      ui = env[:ui]
+
+      controller_name = 'SATAController'
+
+      vm_info = driver.execute("showvminfo", uuid)
+      has_this_controller = vm_info.match("Storage Controller Name.*#{controller_name}")
+
+      if has_this_controller
+        ui.info "already has the #{controller_name} hdd controller"
+      else
+        ui.info "creating #{controller_name} controller #{controller_name}"
+        driver.execute('storagectl', uuid,
+          '--name', "#{controller_name}",
+          '--add', 'sata',
+          '--controller', 'IntelAhci')
+      end
+
+      ## Disk Management
+      format = "VMDK"
+      size = 1024
+      port = 0
+
+      ui.info "attaching storage to #{controller_name}"
+      %w(sdb sdc sdd).each do |hdd|
+        if File.exist?("#{hdd}" + ".vmdk")
+          ui.info "#{hdd} Already Exists"
+        else
+              ui.info "Creating #{hdd}\.vmdk"
+              driver.execute("createhd", 
+                   "--filename", "#{hdd}", 
+                   "--size", size, 
+                   "--format", "#{format}")
+               end
+
+        # Attach devices
+        driver.execute('storageattach', uuid,
+          '--storagectl', "#{controller_name}",
+          '--port', port += 1,
+          '--type', 'hdd',
+          '--medium', "#{hdd}" + ".vmdk")
+      end
+
+      original_call(env)
+    end
+  end
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
@@ -56,13 +106,6 @@ Vagrant.configure(2) do |config|
   #
   # View the documentation for the provider you are using for more
   # information on available options.
-
-  config.vm.provider "virtualbox" do | vb |
-      unless File.exist?(disk)
-          vb.customize ['createhd', '--filename', disk, '--size', 1 * 1024]
-      end
-      vb.customize ['storageattach', :id, '--storagectl', 'SATAController', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', disk]
-  end
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
   # such as FTP and Heroku are also available. See the documentation at
