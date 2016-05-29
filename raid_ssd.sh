@@ -48,4 +48,28 @@ echo "y" | mdadm --create --verbose ${raid_dev} --level=$level --raid-devices=$n
 mdadm --detail ${raid_dev}
 cat /proc/mdstat
 
+echo "Creating a partition on the array"
+echo "n
+p
+1
+
+
+t
+8e
+w" | fdisk ${raid_dev}
+
+echo "Creating LVM"
+# check if LVM is installed
+if [[ -z `dpkg --get-selections | grep -w ^lvm2 | grep -w install$` ]]
+then
+	echo "ERROR: Please install lvm2. Exiting."
+	exit 3
+fi
+
+pvcreate ${raid_dev}p1
+vgcreate instancesvg ${raid_dev}p1
+lvcreate -l 100%FREE -n instanceslv instancesvg
+mkfs.ext4 /dev/instancesvg/instanceslv
+lvdisplay
+
 set -
