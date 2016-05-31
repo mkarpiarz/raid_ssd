@@ -43,6 +43,9 @@ then
 	exit 2
 fi
 
+echo "Stop nova-compute (just in case)"
+service nova-compute stop
+
 echo "Setting up the RAID array"
 echo "y" | mdadm --create --verbose ${raid_dev} --level=$level --raid-devices=$n_disks ${disks[*]}
 mdadm --detail ${raid_dev}
@@ -88,5 +91,8 @@ mkdir /var/lib/nova/instances
 mount /var/lib/nova/instances
 chown -R nova:nova /var/lib/nova/instances
 ls -la /var/lib/nova/instances
+
+echo "Restarting nova-compute"
+service nova-compute restart
 
 set -
