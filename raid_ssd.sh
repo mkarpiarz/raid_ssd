@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 # --------
 # array of members
 disks=(/dev/sdc /dev/sdd)
@@ -13,12 +11,6 @@ raid_dev="/dev/md2"
 # little bit of bash array magic
 # append "1" to the end of each element without looping
 partitions=(${disks[@]/%/1})
-
-# check if the user is root
-if [ $EUID -ne 0 ]; then
-	echo "This script should be run as root." > /dev/stderr
-	exit 1
-fi
 
 # a variable storing the number of disks
 n_disks=${#disks[*]}
@@ -45,13 +37,6 @@ do
 	fi
 done
 
-# check if mdadm is installed
-if [[ -z `dpkg --get-selections | grep -w ^mdadm | grep -w install$` ]]
-then
-	echo "ERROR: Please install mdadm. Exiting."
-	exit 2
-fi
-
 echo "Stop nova-compute (just in case)"
 service nova-compute stop
 
@@ -71,12 +56,6 @@ t
 w" | fdisk ${raid_dev}
 
 echo "Creating LVM"
-# check if LVM is installed
-if [[ -z `dpkg --get-selections | grep -w ^lvm2 | grep -w install$` ]]
-then
-	echo "ERROR: Please install lvm2. Exiting."
-	exit 3
-fi
 
 pvcreate ${raid_dev}p1
 vgcreate instancesvg ${raid_dev}p1
@@ -105,5 +84,3 @@ echo "Restarting nova-compute"
 service nova-compute restart
 
 cat /proc/mdstat
-
-set -
