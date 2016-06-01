@@ -10,6 +10,9 @@ level="mirror"
 # name of the RAID device
 raid_dev="/dev/md2"
 # --------
+# little bit of bash array magic
+# append "1" to the end of each element without looping
+partitions=(${disks[@]/%/1})
 
 # check if the user is root
 if [ $EUID -ne 0 ]; then
@@ -53,7 +56,7 @@ echo "Stop nova-compute (just in case)"
 service nova-compute stop
 
 echo "Setting up the RAID array"
-echo "y" | mdadm --create --verbose ${raid_dev} --level=$level --raid-devices=$n_disks ${disks[*]}
+echo "y" | mdadm --create --verbose ${raid_dev} --level=$level --raid-devices=$n_disks ${partitions[*]}
 mdadm --detail ${raid_dev}
 cat /proc/mdstat
 
