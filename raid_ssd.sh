@@ -78,7 +78,7 @@ lvdisplay
 echo "Moving instances data"
 mkdir -p /mnt/instances
 mount /dev/instancesvg/instanceslv /mnt/instances/
-rsync -av /var/lib/nova/instances/* /mnt/instances/
+rsync -av --progress /var/lib/nova/instances/* /mnt/instances/
 mv /var/lib/nova/instances /var/lib/nova/instances.old
 umount /mnt/instances
 
@@ -94,5 +94,7 @@ ls -la /var/lib/nova/instances
 
 echo "Restarting nova-compute"
 service nova-compute restart
+
+cat /proc/mdstat
 
 set -
