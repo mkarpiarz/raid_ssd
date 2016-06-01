@@ -23,17 +23,23 @@ echo "Number of disks: $n_disks"
 
 for disk in ${disks[@]}
 do
-	echo "Partitioning disk: $disk"
-	fdisk -l $disk
-	echo "n
-	p
-	1
-	
-	
-	t
-	83
-	w" | fdisk $disk
-	fdisk -l $disk
+	if lshw -quiet -c disk | grep -q $disk
+	then
+		echo "Partitioning disk: $disk"
+		fdisk -l $disk
+		echo "n
+		p
+		1
+		
+		
+		t
+		83
+		w" | fdisk $disk
+		fdisk -l $disk
+	else
+		echo "Could not find $disk - exiting"
+		exit 3
+	fi
 done
 
 # check if mdadm is installed
