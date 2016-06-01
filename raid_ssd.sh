@@ -37,9 +37,6 @@ do
 	fi
 done
 
-echo "Stop nova-compute (just in case)"
-service nova-compute stop
-
 echo "Setting up the RAID array"
 echo "y" | mdadm --create --verbose ${raid_dev} --level=$level --raid-devices=$n_disks ${partitions[*]}
 mdadm --detail ${raid_dev}
@@ -56,19 +53,11 @@ t
 w" | fdisk ${raid_dev}
 
 echo "Creating LVM"
-
 pvcreate ${raid_dev}p1
 vgcreate instancesvg ${raid_dev}p1
 lvcreate -l 100%FREE -n instanceslv instancesvg
 mkfs.ext4 /dev/instancesvg/instanceslv
 lvdisplay
-
-echo "Moving instances data"
-mkdir -p /mnt/instances
-mount /dev/instancesvg/instanceslv /mnt/instances/
-rsync -av --progress /var/lib/nova/instances/* /mnt/instances/
-mv /var/lib/nova/instances /var/lib/nova/instances.old
-umount /mnt/instances
 
 echo "Mounting filesystem permanently"
 # backup fstab
@@ -79,8 +68,5 @@ mkdir -p /var/lib/nova/instances
 mount /var/lib/nova/instances
 chown -R nova:nova /var/lib/nova/instances
 ls -la /var/lib/nova/instances
-
-echo "Restarting nova-compute"
-service nova-compute restart
 
 cat /proc/mdstat
