@@ -96,7 +96,7 @@ echo "Mounting filesystem permanently"
 cp /etc/fstab{,.`date +%Y%m%d-%H%M`.bak}
 # add entry to fstab
 echo "/dev/mapper/instancesvg-instanceslv /var/lib/nova/instances     ext4    defaults        0       0" >> /etc/fstab
-mkdir /var/lib/nova/instances
+mkdir -p /var/lib/nova/instances
 mount /var/lib/nova/instances
 chown -R nova:nova /var/lib/nova/instances
 ls -la /var/lib/nova/instances
